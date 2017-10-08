@@ -15,19 +15,22 @@ class Machine:
         self.tape = ['.'] + [str(s) for s in sequence] + ['.']
         self.position = 1
         i = 0
-        next_iter = True
-        while next_iter:
+        while i < max_iters \
+                and self.state != 'y' \
+                and self.state != 'n':
             if debug:
                 print('Iteration:', i)
                 print(self)
                 print('State:', self.state)
                 print('\n')
-            self.step()
             i += 1
-            next_iter = i < max_iters \
-                        and self.state != 'y' \
-                        and self.state != 'n'
+            self.step()
 
+        if debug:
+            print('Iteration:', i)
+            print(self)
+            print('State:', self.state)
+            print('\n')
         return self.state == 'y'
 
     def step(self):
@@ -46,8 +49,8 @@ class Machine:
             self.tape += ['.']
 
     def __str__(self):
-        pos_array = [' ' for _ in self.tape]
-        pos_array[self.position] = '|'
+        pos_array = [' ' * len(x) for x in self.tape]
+        pos_array[self.position] = '|' * len(pos_array[self.position])
         return str(self.tape) + '\n' + str(pos_array)
 
 
@@ -67,9 +70,13 @@ def load_settings_from_csv(csv_file):
         state_dict = {}
         for i in range(len(tups)):
             tup = tups[i]
-            sig, st, dir = tup.split(';')
-            sig = sig if sig != '' else signs[i]
-            dir = -1 if dir == '-' else 1
+            try:
+                sig, st, dir = tup.split(';')
+                st = st if st != '' else state
+                sig = sig if sig != '' else signs[i]
+                dir = -1 if dir == '-' else 1
+            except:
+                sig, st, dir = None, None, None
             state_dict[signs[i]] = {
                 'sign': sig,
                 'state': st,
